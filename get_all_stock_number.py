@@ -8,12 +8,14 @@ class  GetStockNumber:
     def get_number(self):
         stock_dic = {}
 
-        try:  # Check parse url is succeeded
+        try:  # Check requests url is succeeded
             response = requests.get('https://isin.twse.com.tw/isin/C_public.jsp?strMode=2')
         except requests.exceptions.RequestException as e:  # This is the correct syntax
             raise SystemExit(e)
+
         soup = BeautifulSoup(response.text, "html.parser")  # Use BeautifulSoup get html data
         stock_table = soup.find_all("tr")  # find tag 'tr'
+
         for i in stock_table: # find tr -> td for getting all stock number and name
             stock_info= i.find_all("td")
             is_number = re.match(r'^[0-9]', stock_info[0].text[0])
