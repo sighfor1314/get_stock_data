@@ -1,7 +1,10 @@
 ## Description
 ###  description
     get_all_stock_number.py : Get all stock_code,stock_name,industry_type
+                              from https://isin.twse.com.tw/isin/C_public.jsp?strMode=2 
     stock_info.py : Get all stock info from twse API and generate dairly json
+                    from http://www.twse.com.tw/exchangeReport/STOCK_DAY_ALL?response=json
+                    Because more effective
     top3_industry.py : Calculate top3 ChangeRate of industry  
 
 ### Deploy to AWS lambda
