@@ -63,12 +63,3 @@ class GetTop3Industry:
         self.get_industry_top3(result)
 
 
-
-
-a=GetStockNumber()
-b=a.get_number()
-c=GetStockInfo(b)
-e,f=c.get_stock_all_data()
-d=GetTop3Industry(e,f)
-d.convert_to_pd()
-
