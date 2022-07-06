@@ -21,3 +21,5 @@
     4. Check industry_type count is correct
     5. Check listed.json is existed
     6. Check {industry}_top3.json is al existed
+### Notes
+    2022xxxx_listed only for testing
