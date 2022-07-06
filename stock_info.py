@@ -1,15 +1,16 @@
 from get_all_stock_number import GetStockNumber
 import requests
 import json
-from datetime import datetime
+import datetime
 import time
+import random
 '''
     goal : generate daily stock infomation to json file
 '''
 class GetStockInfo:
     def __init__(self,stock_number):
         self.stock_number=stock_number
-        self.date = datetime.now().strftime('%Y%m%d')
+        self.date = datetime.datetime.now().strftime('%Y%m%d')
         self.result = {
             "stat":None,
             'date': None,
@@ -18,34 +19,44 @@ class GetStockInfo:
             "data": [],
             'notes':None
         }
-        # self.proxies_list=['66.196.238.181:3128','160.3.168.70:8080','140.227.65.59:3180']
+        self.proxies_list=['xxxxxx','xxxxx','xxxx']  # initial proxies list
 
+    '''
+               from twse STOCK_DAY api get each stock info
+    '''
     def get_stock_data(self,index=0):
 
-        # self.df=['1101','1102','1103']
-        new_proxy = self.proxies_list.pop()
-        # print(new_proxy)
-        proxies = {"http": '133.125.54.107:80'}
-        for i in self.stock_number.keys():
+        stock_list=[]
+        for i in  self.stock_number.keys():
+            stock_list.append(i)
+
+
+        for i in range(index, len(stock_list)):
+            new_proxy = random.choice(self.proxies_list) # random pick proxy
+            proxies = {"http": new_proxy}
             try:
-                print(i)
+
                 response = requests.get('https://www.twse.com.tw/exchangeReport/STOCK_DAY?'+
                                         'date='+self.date+\
-                                        '&stockNo='+i
+                                        '&stockNo='+stock_list[i]
                                         ,proxies=proxies
                                         )
-                time.sleep(3)
-            except requests.exceptions.RequestException as e:  # This is the correct syntax
+                time.sleep(1)
+            except requests.exceptions.RequestException as e:
+                self.get_stock_data(i)
                 raise SystemExit(e)
             data  = json.loads(response.text)
             length=len(data['data'])
-            self.result['data'].append( {i:data['data'][length-1]})
+            self.result['data'].append( [stock_list[i]]+data['data'][length-2])
+
+        file = open(data['date']+'_listed.json', "w",encoding="utf-8")  # output json file
+        json.dump(self.result, file, ensure_ascii=False)
 
     '''
             from twse STOCK_DAY_ALL api get today's all stock info
     '''
     def get_stock_all_data(self):
-
+        # proxies = {"http": '211.43.214.205:80'}
         headers = {'user-agent': 'Mozilla/5.0'}
         try:  # Check requests url is succeeded
             response = requests.get('http://www.twse.com.tw/exchangeReport/STOCK_DAY_ALL?response=json',headers=headers)
@@ -54,16 +65,20 @@ class GetStockInfo:
                 raise SystemExit(e)
 
         data = json.loads(response.text)  # load twse response json file
-        self.result['stat'] = data['stat']
-        self.result['date'] = data['date']
-        self.result['title'] = data['title']
+        self.result['stat'] = data['stat'] # add stat info
+        self.result['date'] = data['date'] # add date info
+        self.result['title'] = data['title'] # add title  info
+        industry = tuple(set (self.stock_number.values())) # get all industry to tuple
+
         for i in range(len(data['data'])):
 
             if data['data'][i][0] in self.stock_number.keys():  # if stock_number in data ,appending to result
+                data['data'][i].insert(2, self.stock_number[data['data'][i][0]])
                 self.result['data'].append( data['data'][i])
 
-        self.result['notes'] = data['notes']
-        file = open('listed.json', "w",encoding="utf-8")
+        self.result['notes'] = data['notes'] # add notes info
+        file = open(data['date']+'_listed.json', "w",encoding="utf-8")  # output json file
         json.dump(self.result, file,ensure_ascii=False)
-        # return data
+
+        return self.result,industry
 
