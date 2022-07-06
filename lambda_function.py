@@ -9,7 +9,7 @@ def lambda_handler(event, context):
     stock_dic = task.get_number()
 
     task = GetStockInfo(stock_dic)
-    result_dic,industry = task.get_stock_data()
+    result_dic,industry = task.get_stock_all_data()
     task = GetTop3Industry(result_dic,industry)
     task.convert_to_pd ()
     return {
