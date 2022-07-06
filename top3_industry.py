@@ -1,5 +1,3 @@
-from stock_info import GetStockInfo
-from get_all_stock_number import GetStockNumber
 import json
 import pandas as pd
 import datetime
@@ -10,14 +8,19 @@ class GetTop3Industry:
         self.stock_info=stock_info
         self.industry= industry
 
+    '''
+            get yesterday 'yyyymmdd'
+    '''
     def get_last_day(self):
         today = datetime.date.today()
         oneday = datetime.timedelta(days=1)
         yesterday = today - oneday
         return yesterday.strftime('%Y%m%d')
 
+    '''
+        calculate each  IndustryType top3 ChangeRate  and output json
+    '''
     def get_industry_top3(self, df):
-
         top3= df.sort_values(['IndustryType', 'ChangeRate'], ascending=False).groupby('IndustryType').head(3)
         for i in self.industry:
             filter = top3['IndustryType'] == i
@@ -25,11 +28,13 @@ class GetTop3Industry:
             with open(i+'_top3.json', 'w', encoding='utf-8') as file:
                 output.to_json(file,orient='records', force_ascii=False)
 
-
+    '''
+         calculate ChangeRate  from today stock informatiom  and convert to  dataframe
+    '''
     def convert_to_pd(self):
-        last_day= self.get_last_day()
+        last_day= self.get_last_day() # get yesterday
 
-        with open(last_day+'_listed.json') as f:
+        with open(last_day+'_listed.json') as f: # from last_day json get closing price
             data = json.load(f)
         closing_price_list=[]
         for i in range(len(data['data'])):
@@ -49,17 +54,16 @@ class GetTop3Industry:
         change_rate_list=[] # from last_day get closing price
         for i in range( result.shape[0]):
 
-            closing_price =   result['ClosingPrice'][i]
-            last_closing_price = result['LastClosingPrice'][i]
+            closing_price = result['ClosingPrice'][i]  #  get today closing price
+            last_closing_price = result['LastClosingPrice'][i] #  get last_day closing price
 
             if  last_closing_price == 0: # if last closing price == 0 , change_rate asign to None
                 change_rate_list.append([data['data'][i][0],None])
-
             else:
                 change_rate_list.append([data['data'][i][0],((closing_price - last_closing_price ) / last_closing_price )*100])
 
         change_rate = pd.DataFrame(list(change_rate_list), columns=["Code", "ChangeRate"])
-        result = pd.merge(result, change_rate)
+        result = pd.merge(result, change_rate) # merge ChangeRate to result
         self.get_industry_top3(result)
 
 
